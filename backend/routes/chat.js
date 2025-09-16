@@ -1,26 +1,29 @@
-const express = require('express');
-const OpenAI = require('openai');
-const router = express.Router();
 require('dotenv').config();
+const express = require('express');
+const { InferenceClient } = require('@huggingface/inference');
+const router = express.Router();
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+const HF_TOKEN = process.env.HUGGINGFACE_API_KEY;
+const client = new InferenceClient(HF_TOKEN);
 
 router.post('/chat', async (req, res) => {
   const { message } = req.body;
 
   try {
-    const response = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
-      messages: [{ role: 'user', content: message }],
-      max_tokens: 150,
+    // OpenAI-compatible chat completion
+    const chatCompletion = await client.chatCompletion({
+      model: 'deepseek-ai/DeepSeek-V3-0324', // choose any supported model
+      messages: [
+        { role: 'user', content: message }
+      ],
     });
 
-    res.json({ reply: response.data.choices[0].message.content });
+    const reply = chatCompletion.choices[0].message || "Sorry, I couldn't generate a response.";
+
+    res.json({ reply });
   } catch (error) {
-    console.error('Error communicating with OpenAI:', error);
-    res.status(500).json({ error: 'Error communicating with OpenAI' });
+    console.error('Hugging Face Error:', error.response?.data || error.message);
+    res.status(500).json({ error: error.message });
   }
 });
 
