@@ -72,7 +72,7 @@ const ChatComponent: React.FC = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:3000/api/chat', { message: userText });
+      const response = await axios.post('https://aichatbackend.vercel.app/api/chat', { message: userText });
       const replyContent: string = response?.data?.reply?.content ?? 'Sorry, I could not generate a response.';
 
       // Only show the assistant content with a typing effect
