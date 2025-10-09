@@ -1,28 +1,30 @@
 require('dotenv').config();
 const express = require('express');
-const { InferenceClient } = require('@huggingface/inference');
+const Groq = require('groq-sdk');
 const router = express.Router();
 
-const HF_TOKEN = process.env.HUGGINGFACE_API_KEY;
-const client = new InferenceClient(HF_TOKEN);
+const GROQ_API_KEY = process.env.GROQ_API_KEY;
+const groq = new Groq({ apiKey: GROQ_API_KEY });
 
 router.post('/chat', async (req, res) => {
   const { message } = req.body;
 
   try {
-    // OpenAI-compatible chat completion
-    const chatCompletion = await client.chatCompletion({
-      model: 'deepseek-ai/DeepSeek-V3-0324', // choose any supported model
+    // Groq chat completion
+    const chatCompletion = await groq.chat.completions.create({
+      model: 'llama-3.3-70b-versatile', // Fast and powerful Groq model
       messages: [
         { role: 'user', content: message }
       ],
+      temperature: 0.7,
+      max_tokens: 1024,
     });
 
     const reply = chatCompletion.choices[0].message || "Sorry, I couldn't generate a response.";
 
     res.json({ reply });
   } catch (error) {
-    console.error('Hugging Face Error:', error.response?.data || error.message);
+    console.error('Groq API Error:', error.response?.data || error.message);
     res.status(500).json({ error: error.message });
   }
 });
